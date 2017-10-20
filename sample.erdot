@@ -1,0 +1,20 @@
+// This is a comment
+
+# Tables
+
+// Indent is '[tab]' or '2 or more [space]'
+customers (顧客マスタ)
+	id INTEGER PrimaryKey
+	name (顧客名) VARCHAR2(20) NotNull
+	address (住所) VARCHAR2(100) NotNull Default(10)
+	picID (担当者ID) INTEGER
+
+employees
+	id INTEGER PrimaryKey
+	employeeNo VARCHAR2(10) Unique NoTNull
+	name VARCHAR2(20) NotNull
+
+# Relations
+
+// 0 or more to one
+customers.picID *-1 employees.id 
