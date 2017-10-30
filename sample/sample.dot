@@ -1,0 +1,114 @@
+digraph "ERD of lecture" {
+	node [shape="box" style="filled" color="whitesmoke" fillcolor="whitesmoke" fontname="monospace" fontsize="10"];
+	//edge [dir="both" fontname="sans-serif" fontsize="10" arrowhead="tee" arrowtail="crowodot"];
+	edge [dir="both" fontname="sans-serif" fontsize="10"];
+
+	// Entities
+	学生[label = <
+		<table border="0" cellspacing="0" cellpadding="0" bgcolor="gray">
+		<tr>
+			<td align="left" valign="bottom" cellpadding="4" border="1" color="gray">学生</td>
+		</tr>
+		<tr>
+			<td>
+				<table bgcolor="white" color="gray" border="1" cellborder="0" cellspacing="1" cellpadding="1">
+				<tr>
+					<td align="left" port="学籍番号"><i>学籍番号</i></td>
+					<td align="left" port="">VARCHAR2(20) PRIMARY KEY</td>
+				</tr>
+				<hr />
+				<tr>
+					<td align="left" port="氏名"><font color="red">氏名</font></td>
+					<td align="left" port="">VARCHAR2(20) NOT NULL UNIQUE</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>>];
+
+	教員[label = <
+		<table border="0" cellspacing="0" cellpadding="0" bgcolor="gray">
+		<tr>
+			<td align="left" valign="bottom" cellpadding="4" border="1" color="gray">教員</td>
+		</tr>
+		<tr>
+			<td>
+				<table bgcolor="white" color="gray" border="1" cellborder="0" cellspacing="1" cellpadding="1">
+				<tr>
+					<td align="left" port="教員番号"><u>教員番号</u></td>
+					<td align="left" port="">VARCHAR2(20) PRIMARY KEY</td>
+				</tr>
+				<hr />
+				<tr>
+					<td align="left" port="氏名"><b>氏名</b></td>
+					<td align="left" port="">VARCHAR2(20) NOT NULL UNIQUE</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>>];
+
+	授業[label = <
+		<table border="0" cellspacing="0" cellpadding="0" bgcolor="gray">
+		<tr>
+			<td align="left" valign="bottom" cellpadding="4" border="1" color="gray">授業</td>
+		</tr>
+		<tr>
+			<td>
+				<table bgcolor="white" color="gray" border="1" cellborder="0" cellspacing="1" cellpadding="1">
+				<tr>
+					<td align="left">教員番号</td>
+					<td align="left">VARCHAR2(20) PRIMARY KEY</td>
+				</tr>
+				<hr />
+				<tr>
+					<td align="left">学籍番号</td>
+					<td align="left">VARCHAR2(20) PRIMARY KEY</td>
+				</tr>
+				<tr>
+					<td align="left">クラス名</td>
+					<td align="left">VARCHAR2(20) NOT NULL UNIQUE</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>>];
+
+	教室[label = <
+		<table border="0" cellspacing="0" cellpadding="0" bgcolor="gray">
+		<tr>
+			<td align="left" valign="bottom" cellpadding="4" border="1" color="gray">教室</td>
+		</tr>
+		<tr>
+			<td>
+				<table bgcolor="white" color="gray" border="1" cellborder="0" cellspacing="1" cellpadding="1">
+				<tr>
+					<td align="left">教室番号</td>
+					<td align="left">VARCHAR2(20) PRIMARY KEY</td>
+				</tr>
+				<hr />
+				<tr>
+					<td align="left">教室名</td>
+					<td align="left">VARCHAR2(20) NOT NULL UNIQUE</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>>];
+
+
+	// Relations
+	学生 -> 教室[arrowtail="teecrow"]; //1以上
+	学生 -> 授業[arrowtail="crowodot"]; //0以上
+	教員 -> 授業[arrowhead="" arrowtail="teeodot"]; //0または1
+	授業 -> 教室[arrowhead="" arrowtail="tee"]; // 1
+
+	/*
+	科目:主担当教員 -> 教員;
+	TA:学籍番号 -> 学生:学籍番号[arrowtail="teeodot"];
+	TA:科目番号 -> 科目:科目番号[arrowtail="teeodot"];
+	履修:学籍番号 -> 学生:学籍番号;
+	履修:科目番号 -> 科目:科目番号;
+	演習課題:科目番号 -> 科目:科目番号;
+	*/
+}
