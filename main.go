@@ -343,6 +343,13 @@ func toDotCardinarity(c string) string {
 	return ret + "]"
 }
 
+func addParenthesis(s string) string {
+	if s == "" {
+		return ""
+	}
+	return "(" + s + ")"
+}
+
 func main() {
 	var fp *os.File
 	var err error
@@ -373,6 +380,7 @@ func main() {
 	// make dot code from ViewCode
 	funcMap := template.FuncMap{
 		"toDotCardinarity": toDotCardinarity,
+		"addParenthesis":   addParenthesis,
 	}
 	tmpl, err := template.New("dotCodeTemplate").Funcs(funcMap).Parse(dotCodeTemplate)
 	if err != nil {

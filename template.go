@@ -22,7 +22,7 @@ digraph "ERD" {
 	{{.Name}}[label = <
 		<table border="0" cellspacing="0" cellpadding="0" bgcolor="gray">
 		<tr>
-			<td align="left" valign="bottom" cellpadding="4" border="1" color="gray">{{.Name}}({{.AliasName}})</td>
+			<td align="left" valign="bottom" cellpadding="4" border="1" color="gray">{{.Name}}{{addParenthesis .AliasName}}</td>
 		</tr>
 		<tr>
 			<td>
@@ -42,7 +42,7 @@ digraph "ERD" {
 
 {{define "attribute"}}
 				<tr>
-					<td align="left"><font color="red">{{.Name}}({{.AliasName}})</font></td>
+					<td align="left"><font color="red">{{.Name}}{{addParenthesis .AliasName}}</font></td>
 					<td align="left">{{.FullType}}</td>
 				</tr>
 {{end}}
