@@ -42,7 +42,8 @@ digraph "ERD" {
 
 {{define "attribute"}}
 				<tr>
-					<td align="left"><font color="red">{{.Name}}{{addParenthesis .AliasName}}</font></td>
+					<td align="left"><font color="red">{{.Name}}</font></td>
+					<td align="left">{{.AliasName}}</td>
 					<td align="left">{{.FullType}}</td>
 				</tr>
 {{end}}
