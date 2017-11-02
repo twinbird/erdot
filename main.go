@@ -7,17 +7,20 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"text/template"
 )
 
 const (
-	TableDeclearSectionCode = iota
-	RelationDeclearSectionCode
-	TableNameDeclearCode
-	ColumnDeclearCode
-	RelationDeclearCode
-	CommentDeclearCode
-	BadOperationCode
+	// IRCode
+	TableDeclearSectionIRCode = iota
+	RelationDeclearSectionIRCode
+	TableNameDeclearIRCode
+	ColumnDeclearIRCode
+	RelationDeclearIRCode
+	CommentDeclearIRCode
+	BadOperationIRCode
 
+	// section flag (for parse to IR)
 	NoOperationSection = iota
 	TablesSection
 	RelationSection
@@ -105,22 +108,22 @@ func (c *IRCode) String() string {
 	var desc string
 
 	switch c.opKind {
-	case TableDeclearSectionCode:
+	case TableDeclearSectionIRCode:
 		k = "TableDeclearSectionCode"
-	case RelationDeclearSectionCode:
+	case RelationDeclearSectionIRCode:
 		k = "RelationDeclearSectionCode"
-	case TableNameDeclearCode:
+	case TableNameDeclearIRCode:
 		k = "TableNameDeclearCode"
 		desc = c.table.String()
-	case ColumnDeclearCode:
+	case ColumnDeclearIRCode:
 		k = "ColumnDeclearCode"
 		desc = c.column.String()
-	case RelationDeclearCode:
+	case RelationDeclearIRCode:
 		k = "RelationDeclearCode"
 		desc = c.relation.String()
-	case CommentDeclearCode:
+	case CommentDeclearIRCode:
 		k = "CommentDeclearCode"
-	case BadOperationCode:
+	case BadOperationIRCode:
 		k = "BadOperationCode"
 	default:
 		log.Fatal("Unknown IRCode to String:", c)
@@ -131,27 +134,34 @@ func (c *IRCode) String() string {
 	return str
 }
 
-func main() {
-	var fp *os.File
-	var err error
+// presentation for template
+type ViewCode struct {
+	Entities  []*EntityViewCode
+	Relations []*RelationViewCode
+}
 
-	if len(os.Args) < 2 {
-		fp = os.Stdin
-	} else {
-		fp, err = os.Open(os.Args[1])
-		if err != nil {
-			log.Fatal(err)
-			os.Exit(1)
-		}
-		defer fp.Close()
-	}
-	code, err := parse(fp)
-	if err != nil {
-		log.Fatal(err)
-	}
-	for i := 0; i < len(code); i++ {
-		fmt.Println(code[i])
-	}
+type EntityViewCode struct {
+	Name           string
+	AliasName      string
+	PrimaryColumns []*EntityColumnViewCode
+	Columns        []*EntityColumnViewCode
+}
+
+type EntityColumnViewCode struct {
+	Name      string
+	AliasName string
+	IsNotNull bool
+	IsUnique  bool
+	IsPrimary bool
+	FullType  string
+}
+
+type RelationViewCode struct {
+	FromTable   string
+	FromColumn  string
+	ToTable     string
+	ToColumn    string
+	Cardinarity string
 }
 
 func parse(r io.Reader) ([]*IRCode, error) {
@@ -183,15 +193,15 @@ func parse(r io.Reader) ([]*IRCode, error) {
 func lineToIRCode(line string, no int, section int) (*IRCode, int, error) {
 	// comments
 	if RegexpCommentDeclear.MatchString(line) == true {
-		return &IRCode{CommentDeclearCode, no, line, nil, nil, nil}, section, nil
+		return &IRCode{CommentDeclearIRCode, no, line, nil, nil, nil}, section, nil
 	}
 	// into table declear section
 	if RegexpTableDeclearSection.MatchString(line) == true {
-		return &IRCode{TableDeclearSectionCode, no, line, nil, nil, nil}, TablesSection, nil
+		return &IRCode{TableDeclearSectionIRCode, no, line, nil, nil, nil}, TablesSection, nil
 	}
 	// into relation declear section
 	if RegexpRelationDeclearSection.MatchString(line) == true {
-		return &IRCode{RelationDeclearSectionCode, no, line, nil, nil, nil}, RelationSection, nil
+		return &IRCode{RelationDeclearSectionIRCode, no, line, nil, nil, nil}, RelationSection, nil
 	}
 	// table declear
 	if section == TablesSection {
@@ -201,7 +211,7 @@ func lineToIRCode(line string, no int, section int) (*IRCode, int, error) {
 			tn := g[1]
 			alias := g[3]
 			t := &TableIRCode{tn, alias}
-			return &IRCode{TableNameDeclearCode, no, line, t, nil, nil}, section, nil
+			return &IRCode{TableNameDeclearIRCode, no, line, t, nil, nil}, section, nil
 		}
 		// column
 		if RegexpColumnDeclear.MatchString(line) == true {
@@ -221,7 +231,7 @@ func lineToIRCode(line string, no int, section int) (*IRCode, int, error) {
 			if RegexpColumnNotNull.MatchString(c.fullType) == true {
 				c.isNotNull = true
 			}
-			return &IRCode{ColumnDeclearCode, no, line, nil, nil, c}, section, nil
+			return &IRCode{ColumnDeclearIRCode, no, line, nil, nil, c}, section, nil
 		}
 	}
 	// relation declear
@@ -234,8 +244,142 @@ func lineToIRCode(line string, no int, section int) (*IRCode, int, error) {
 			tn2 := g[4]
 			c2 := g[5]
 			r := &RelationIRCode{tn1, c1, tn2, c2, card}
-			return &IRCode{RelationDeclearCode, no, line, nil, r, nil}, section, nil
+			return &IRCode{RelationDeclearIRCode, no, line, nil, r, nil}, section, nil
 		}
 	}
 	return nil, section, nil
+}
+
+func translateViewCode(code []*IRCode) (*ViewCode, error) {
+	viewCode := &ViewCode{
+		Entities:  make([]*EntityViewCode, 0),
+		Relations: make([]*RelationViewCode, 0),
+	}
+
+	var entity *EntityViewCode
+	for _, c := range code {
+		switch c.opKind {
+		case TableNameDeclearIRCode:
+			if entity != nil {
+				viewCode.Entities = append(viewCode.Entities, entity)
+			}
+			entity = &EntityViewCode{Name: c.table.name, AliasName: c.table.aliasName}
+		case ColumnDeclearIRCode:
+			col := &EntityColumnViewCode{
+				Name:      c.column.name,
+				AliasName: c.column.aliasName,
+				IsNotNull: c.column.isNotNull,
+				IsUnique:  c.column.isUnique,
+				IsPrimary: c.column.isPrimary,
+				FullType:  c.column.fullType,
+			}
+			if col.IsPrimary {
+				entity.PrimaryColumns = append(entity.PrimaryColumns, col)
+			} else {
+				entity.Columns = append(entity.Columns, col)
+			}
+		case RelationDeclearIRCode:
+			if entity != nil {
+				viewCode.Entities = append(viewCode.Entities, entity)
+			}
+			r := &RelationViewCode{
+				FromTable:   c.relation.fromTable,
+				FromColumn:  c.relation.fromColumn,
+				ToTable:     c.relation.toTable,
+				ToColumn:    c.relation.toColumn,
+				Cardinarity: c.relation.cardinarity,
+			}
+			viewCode.Relations = append(viewCode.Relations, r)
+		}
+	}
+	if entity != nil {
+		viewCode.Entities = append(viewCode.Entities, entity)
+	}
+	return viewCode, nil
+}
+
+// template utility
+func toDotCardinarity(c string) string {
+	ret := "["
+
+	// head
+	switch c[0] {
+	case '1':
+		// one
+		ret += `arrowhead="tee"`
+	case '*':
+		// 0 or more
+		ret += `arrowhead="crowodot"`
+	case '?':
+		// 0 or 1
+		ret += `arrowhead=""`
+	case '+':
+		// 1 or more
+		ret += `arrowhead="teecrow"`
+	default:
+		log.Fatalf("unknown cardinarity %s", c)
+	}
+
+	ret += " "
+
+	// tail
+	switch c[2] {
+	case '1':
+		// one
+		ret += `arrowtail="tee"`
+	case '*':
+		// 0 or more
+		ret += `arrowtail="crowodot"`
+	case '?':
+		// 1 or 0
+		ret += `arrowtail=""`
+	case '+':
+		// 1 or more
+		ret += `arrowtail="teecrow"`
+	default:
+		log.Fatalf("unknown cardinarity %s", c)
+	}
+
+	return ret + "]"
+}
+
+func main() {
+	var fp *os.File
+	var err error
+
+	if len(os.Args) < 2 {
+		fp = os.Stdin
+	} else {
+		fp, err = os.Open(os.Args[1])
+		if err != nil {
+			log.Fatal(err)
+			os.Exit(1)
+		}
+		defer fp.Close()
+	}
+
+	// erdot text => IRCode
+	code, err := parse(fp)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// IRCode => ViewCode
+	vc, err := translateViewCode(code)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// make dot code from ViewCode
+	funcMap := template.FuncMap{
+		"toDotCardinarity": toDotCardinarity,
+	}
+	tmpl, err := template.New("dotCodeTemplate").Funcs(funcMap).Parse(dotCodeTemplate)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = tmpl.ExecuteTemplate(os.Stdout, "layout", vc)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
