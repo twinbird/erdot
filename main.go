@@ -45,9 +45,9 @@ func init() {
 	RegexpColumnDeclear = regexp.MustCompile(`(\t|  +)(.+?)\s+(\((.+?)\)\s+)?(.+)`)
 	RegexpCommentDeclear = regexp.MustCompile(`^//.*`)
 	RegexpRelationDeclear = regexp.MustCompile(`^(.+)\.(.+)\s(.+)\s(.+)\.(.+)`)
-	RegexpColumnPrimaryKey = regexp.MustCompile(`PrimaryKey`)
+	RegexpColumnPrimaryKey = regexp.MustCompile(`Primary Key`)
 	RegexpColumnUnique = regexp.MustCompile(`Unique`)
-	RegexpColumnNotNull = regexp.MustCompile(`NotNull`)
+	RegexpColumnNotNull = regexp.MustCompile(`Not Null`)
 }
 
 type TableIRCode struct {
@@ -148,12 +148,13 @@ type EntityViewCode struct {
 }
 
 type EntityColumnViewCode struct {
-	Name      string
-	AliasName string
-	IsNotNull bool
-	IsUnique  bool
-	IsPrimary bool
-	FullType  string
+	Name         string
+	AliasName    string
+	IsNotNull    bool
+	IsUnique     bool
+	IsPrimary    bool
+	FullType     string
+	ForeignTable string
 }
 
 type RelationViewCode struct {
@@ -295,7 +296,27 @@ func translateViewCode(code []*IRCode) (*ViewCode, error) {
 	if entity != nil {
 		viewCode.Entities = append(viewCode.Entities, entity)
 	}
+	setForeignTable(viewCode)
 	return viewCode, nil
+}
+
+func setForeignTable(vc *ViewCode) {
+	for _, r := range vc.Relations {
+		for _, e := range vc.Entities {
+			if r.FromTable == e.Name {
+				for _, c := range e.PrimaryColumns {
+					if c.Name == r.FromColumn {
+						c.ForeignTable = r.ToTable
+					}
+				}
+				for _, c := range e.Columns {
+					if c.Name == r.FromColumn {
+						c.ForeignTable = r.ToTable
+					}
+				}
+			}
+		}
+	}
 }
 
 // template utility
@@ -343,11 +364,33 @@ func toDotCardinarity(c string) string {
 	return ret + "]"
 }
 
+// template utility
 func addParenthesis(s string) string {
 	if s == "" {
 		return ""
 	}
 	return "(" + s + ")"
+}
+
+// template utility
+func isForeignColumn(c *EntityColumnViewCode) bool {
+	if c.ForeignTable != "" {
+		return true
+	}
+	return false
+}
+
+// template utility
+func isUniqueColumn(c *EntityColumnViewCode) bool {
+	return c.IsUnique
+}
+
+// template utility
+func isNotNullColumn(c *EntityColumnViewCode) bool {
+	if c.IsPrimary || c.IsNotNull {
+		return true
+	}
+	return false
 }
 
 func main() {
@@ -381,6 +424,9 @@ func main() {
 	funcMap := template.FuncMap{
 		"toDotCardinarity": toDotCardinarity,
 		"addParenthesis":   addParenthesis,
+		"isForeignColumn":  isForeignColumn,
+		"isUniqueColumn":   isUniqueColumn,
+		"isNotNullColumn":  isNotNullColumn,
 	}
 	tmpl, err := template.New("dotCodeTemplate").Funcs(funcMap).Parse(dotCodeTemplate)
 	if err != nil {

@@ -42,10 +42,34 @@ digraph "ERD" {
 
 {{define "attribute"}}
 				<tr>
-					<td align="left"><font color="red">{{.Name}}</font></td>
+					<td align="left">{{template "foreginColumn" .}}</td>
 					<td align="left">{{.AliasName}}</td>
 					<td align="left">{{.FullType}}</td>
 				</tr>
+{{end}}
+
+{{define "foreginColumn"}}
+{{if isForeignColumn .}}
+<i>{{template "uniqueColumn" .}}[FK]</i>
+{{else}}
+{{template "uniqueColumn" .}}
+{{end}}
+{{end}}
+
+{{define "uniqueColumn"}}
+{{if isUniqueColumn .}}
+<u>{{template "nullColumn" .}}</u>
+{{else}}
+{{template "nullColumn" .}}
+{{end}}
+{{end}}
+
+{{define "nullColumn"}}
+{{if isNotNullColumn .}}
+{{.Name}}
+{{else}}
+<font color="red">{{.Name}}</font>
+{{end}}
 {{end}}
 
 {{define "relation"}}
