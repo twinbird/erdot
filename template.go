@@ -3,6 +3,7 @@ package main
 const dotCodeTemplate = `
 {{define "layout"}}
 digraph "ERD" {
+	graph[rankdir=LR];
 	node [shape="box" style="filled" color="whitesmoke" fillcolor="whitesmoke" fontname="monospace" fontsize="10"];
 	edge [dir="both" fontname="sans-serif" fontsize="10"];
 
