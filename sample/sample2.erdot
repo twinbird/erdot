@@ -30,7 +30,7 @@ employees (従業員)
 
 estimates (見積)
 	id (ID) INTEGER PRIMARY KEY
-	title (件名) VARCHAR(100) NOT NULL
+	title (件名) VARCHAR(100) NOT NULL UNIQUE
 	customer_id (顧客ID) INTEGER NOT NULL
 	pic_employees_id (担当従業員ID) INTEGER NOT NULL
 	issued_date (発行日) DATE 
