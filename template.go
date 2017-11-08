@@ -30,7 +30,9 @@ digraph "ERD" {
 				{{range .PrimaryColumns}}
 					{{template "attribute" .}}
 				{{end}}
+				{{if needHRTag .}}
 				<hr />
+				{{end}}
 				{{range .Columns}}
 					{{template "attribute" .}}
 				{{end}}

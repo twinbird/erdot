@@ -393,6 +393,14 @@ func isNotNullColumn(c *EntityColumnViewCode) bool {
 	return false
 }
 
+// template utility
+func needHRTag(evc *EntityViewCode) bool {
+	if len(evc.PrimaryColumns) > 0 && len(evc.Columns) > 0 {
+		return true
+	}
+	return false
+}
+
 func main() {
 	var fp *os.File
 	var err error
@@ -427,6 +435,7 @@ func main() {
 		"isForeignColumn":  isForeignColumn,
 		"isUniqueColumn":   isUniqueColumn,
 		"isNotNullColumn":  isNotNullColumn,
+		"needHRTag":        needHRTag,
 	}
 	tmpl, err := template.New("dotCodeTemplate").Funcs(funcMap).Parse(dotCodeTemplate)
 	if err != nil {
