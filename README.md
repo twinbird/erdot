@@ -127,7 +127,7 @@ estimates_detail.product_id *-1 products.id
 
 #### Sample output
 
-![Sample ER diagram](https://github.com/twinbird/erdot/sample/sample2.png)
+![Sample ER diagram](./sample/sample2.png)
 
 ### Lisence
 
