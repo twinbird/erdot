@@ -45,9 +45,9 @@ func init() {
 	RegexpColumnDeclear = regexp.MustCompile(`(\t|  +)(.+?)\s+(\((.+?)\)\s+)?(.+)`)
 	RegexpCommentDeclear = regexp.MustCompile(`^//.*`)
 	RegexpRelationDeclear = regexp.MustCompile(`^(.+)\.(.+)\s(.+)\s(.+)\.(.+)`)
-	RegexpColumnPrimaryKey = regexp.MustCompile(`Primary Key`)
-	RegexpColumnUnique = regexp.MustCompile(`Unique`)
-	RegexpColumnNotNull = regexp.MustCompile(`Not Null`)
+	RegexpColumnPrimaryKey = regexp.MustCompile(`(?i)Primary Key`)
+	RegexpColumnUnique = regexp.MustCompile(`(?i)Unique`)
+	RegexpColumnNotNull = regexp.MustCompile(`(?i)Not Null`)
 }
 
 type TableIRCode struct {
