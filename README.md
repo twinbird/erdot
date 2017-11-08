@@ -28,16 +28,16 @@ TableName[(alias name)]
 # Relations
 
 // one to one
-TableName.ColumnName 1-1 TableName.ColumnName 
+ChildTableName.ColumnName 1-1 ParentTableName.ColumnName 
 
 // 0 or 1 to one
-TableName.ColumnName ?-1 TableName.ColumnName 
+ChildTableName.ColumnName ?-1 ParentTableName.ColumnName 
 
 // 0 or more to one
-TableName.ColumnName *-1 TableName.ColumnName 
+ChildTableName.ColumnName *-1 ParentTableName.ColumnName 
 
 // 1 or more to one
-TableName.ColumnName +-1 TableName.ColumnName 
+ChildTableName.ColumnName +-1 ParentTableName.ColumnName 
 ```
 
 ### Cardinality
