@@ -8,7 +8,7 @@
 $ go get github.com/twinbird/erdot
 ```
 
-or download release binary.
+or download [release binary](https://github.com/twinbird/erdot/releases).
 
 ## Usage
 
