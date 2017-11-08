@@ -67,7 +67,7 @@ ChildTableName.ColumnName +-1 ParentTableName.ColumnName
 
 ### Sample code
 
-```console
+```
 // estimate print system
 
 # Tables
